@@ -1,0 +1,43 @@
+name: Auto Get Today Bing pic
+
+on:
+
+  schedule:
+    - cron: "0 12 * * *"
+  watch:
+     types: [started]
+
+jobs:
+  auto:
+    runs-on: ubuntu-latest
+    # if: github.event.repository.owner.id == github.event.sender.id # 自己点的 start
+    steps:
+      # 默认安装有 python 环境
+      - name: Install Python env
+        run: |
+          pip3 install requests
+          pip3 install pillow         
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Get Img
+        run: |
+          python3 main.py
+     
+      - name: Save time
+        run: |
+          echo `date +"%Y-%m-%d %H:%M:%S"` begin >> log.txt            
+      # 上传新的更改到仓库        
+      - name: Commit 
+        run: |
+          git pull
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          git add .
+          git commit -m "add  Bing pic" -a
+      - name: Push changes
+        uses: ad-m/github-push-action@v0.8.0
+        env:
+          TOKEN: ${{ secrets.GH_TOKEN }}
+        with:
+          github_token: $TOKEN
+          branch: main
